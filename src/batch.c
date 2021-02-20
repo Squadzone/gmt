@@ -488,9 +488,6 @@ EXTERN_MSC int GMT_batch (void *V_API, int mode, void *args) {
 		has_conf = true;
 		sprintf (conf_file, "%s/gmt.conf", topdir);
 		gmt_replace_backslash_in_path (conf_file);
-#ifdef WIN32	/* Make it suitable for DOS command line copying */
-		gmt_strrepc (conf_file, '/', '\\');
-#endif
 	}
 
 	/* Create a working directory which will house every local file and all subdirectories created */
@@ -584,6 +581,7 @@ EXTERN_MSC int GMT_batch (void *V_API, int mode, void *args) {
 		while (gmt_fgets (GMT, line, PATH_MAX, Ctrl->S[BATCH_PREFLIGHT].fp)) {	/* Read the preflight script and copy to the temporary preflight script with some exceptions */
 			if (gmt_is_gmtmodule (line, "begin")) {	/* Need to insert the DIR_DATA statement */
 				fprintf (fp, "%s", line);
+				if (Ctrl->In.mode == GMT_DOS_MODE) gmt_strrepc (conf_file, '/', '\\');
 				if (has_conf && !strstr (line, "-C")) fprintf (fp, cpconf[Ctrl->In.mode], conf_file);
 				fprintf (fp, "\tgmt set DIR_DATA \"%s\"\n", datadir);
 			}
@@ -722,6 +720,7 @@ EXTERN_MSC int GMT_batch (void *V_API, int mode, void *args) {
 		while (gmt_fgets (GMT, line, PATH_MAX, Ctrl->S[BATCH_POSTFLIGHT].fp)) {	/* Read the postflight script and copy to the temporary postflight script with some exceptions */
 			if (gmt_is_gmtmodule (line, "begin")) {
 				fprintf (fp, "%s", line);	/* Allow args since the script may make a plot */
+				if (Ctrl->In.mode == GMT_DOS_MODE) gmt_strrepc (conf_file, '/', '\\');
 				if (has_conf && !strstr (line, "-C")) fprintf (fp, cpconf[Ctrl->In.mode], conf_file);
 				fprintf (fp, "\tgmt set DIR_DATA \"%s\"\n", datadir);
 			}
@@ -809,6 +808,7 @@ EXTERN_MSC int GMT_batch (void *V_API, int mode, void *args) {
 	while (gmt_fgets (GMT, line, PATH_MAX, Ctrl->In.fp)) {	/* Read the main script and copy to loop script, with some exceptions */
 		if (gmt_is_gmtmodule (line, "begin")) {	/* Must insert DIR_DATA setting */
 			fprintf (fp, "%s", line);
+			if (Ctrl->In.mode == GMT_DOS_MODE) gmt_strrepc (conf_file, '/', '\\');
 			if (has_conf && !strstr (line, "-C")) fprintf (fp, cpconf[Ctrl->In.mode], conf_file);
 			fprintf (fp, "\tgmt set DIR_DATA \"%s\"\n", datadir);
 		}
